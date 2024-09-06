@@ -28,13 +28,15 @@ class PdfToTextController extends Controller
         $text = $pdf->getText();
 
         $extractedText = $text;
-        $pattern = '/Work experience(.+?)(Project|$)/si';
+        $pattern = '/Work experience\s*(?P<company>[^\n]+)\s*-\s*[^\n]+\s*(?P<start_date>\w+\s+\d{4})\s*–\s*(?P<end_date>\w+\s+\d{4})\s*(?P<position>[^\n]+)/';
         preg_match($pattern, $extractedText, $matches);
-
-        if (!empty($matches[1])) {
-            $workExperience = trim($matches[1]);
+        if (!empty($matches)) {
+            $position = $matches['position'];
+            $company = $matches['company'];
+            $startDate = $matches['start_date'];
+            $endDate = $matches['end_date'];
             // dd($workExperience);
-            ExtractedText::create(['extracted_text' => $workExperience]);
+            ExtractedText::create(['position' => $position, 'company' => $company, 'start_date' => $startDate, 'end_date => $endDate']);
         } else {
             echo "Bagian Work Experience tidak ditemukan.";
         }

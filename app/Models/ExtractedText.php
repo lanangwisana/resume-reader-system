@@ -10,5 +10,5 @@ class ExtractedText extends Model
     use HasFactory;
     protected $table = 'extracted_texts';
     protected $primaryKey = 'id';
-    protected $fillable = ['extracted_text'];
+    protected $fillable = ['position', 'company', 'start_date', 'end_date'];
 }

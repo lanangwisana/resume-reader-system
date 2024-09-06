@@ -13,7 +13,10 @@ return new class extends Migration
     {
         Schema::create('extracted_texts', function (Blueprint $table) {
             $table->id();
-            $table->text('extracted_text');
+            $table->string('position');
+            $table->string('company');
+            $table->string('start_date');
+            $table->string('end_date')->nullable();
             $table->timestamps();
         });
     }
