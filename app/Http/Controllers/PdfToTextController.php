@@ -27,6 +27,15 @@ class PdfToTextController extends Controller
         $pdf = $parser->parseFile($pdfPath);
         $text = $pdf->getText();
 
+        //Fungsi ekstrak work experience
+        $this->extractWorkExperience($text);
+        
+        // Tampilkan teks yang diekstrak ke halaman
+        return view('result', ['text' => $text]);
+    }
+
+    private function extractWorkExperience($text){
+        //Ekstrak text work experiences
         $extractedText = $text;
         $patternWorkExperience = '/Work experience\s*(?P<content>.*?)\s*(?=Projects|Project|$)/si';
         $patternDetails = '/(?P<company>[^\n]+)\s*-\s*[^\n]*\s*(?P<start_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*–\s*(?P<end_date>[a-zA-Z]{3}\s+\d{4})\s*(?P<position>[^\n]+)/';
@@ -80,8 +89,6 @@ class PdfToTextController extends Controller
             {
                 echo "Bagian Work Experience tidak ditemukan.";
             }
-        } 
-        // Tampilkan teks yang diekstrak ke halaman
-        return view('result', ['text' => $text]);
+        }
     }
 }
