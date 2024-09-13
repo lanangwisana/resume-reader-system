@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ExtractedText;
+use App\Models\Project;
 use Illuminate\Http\Request;
 use Smalot\PdfParser\Parser;
 
@@ -27,8 +28,10 @@ class PdfToTextController extends Controller
         $pdf = $parser->parseFile($pdfPath);
         $text = $pdf->getText();
 
-        //Fungsi ekstrak work experience
+        //Fungsi ekstraksi untuk Work Experience
         $this->extractWorkExperience($text);
+        // Fungsi ekstraksi untuk Project
+        $this->extractProject($text);
         
         // Tampilkan teks yang diekstrak ke halaman
         return view('result', ['text' => $text]);
@@ -88,6 +91,50 @@ class PdfToTextController extends Controller
             else 
             {
                 echo "Bagian Work Experience tidak ditemukan.";
+            }
+        }
+    }
+
+    private function extractProject($text){
+        $patternProject = '/Project\s*(?P<content>.*?)\s*(?=Competition|competition|$)/si';
+        //pattern untuk menampilkan date dengan format MMM - MMM/YYYY.
+        $patternDetail = '/(?P<project_name>[^\n]+)\s*-\s*[^\n]*\s*(?P<start_date>[a-zA-Z]{3})\s*-\s*(?P<end_date>[a-zA-Z]{3}\s*\d{4})\s*(?P<role>[^\n]+)/i';
+        //pattern untuk menampilakn date dengan format MMM/YYYY - MMM/YYYY
+        $patternDetails = '/(?P<project_name>[^\n]+)\s*-\s*[^\n]*\s*(?P<start_date>[a-zA-Z]{3}\s*\d{4})\s*-\s*(?P<end_date>[a-zA-Z]{3}\s*\d{4})\s*(?P<role>[^\n]+)/i';
+
+        if(preg_match($patternProject, $text, $matches))
+        {
+            $projectText = $matches['content'];
+            // dd($projectText);
+            if(preg_match_all($patternDetail, $projectText, $matches, PREG_SET_ORDER))
+            {
+                // dd($matches);
+                foreach($matches as $match)
+                {
+                    $project_name = trim($match['project_name']);
+                    $role = trim($match['role']);
+                    $start_date = $match['start_date'];
+                    $end_date = $match['end_date'];
+                }
+                Project::created
+                (['project_name' => $project_name, 'role' => $role, 'start_date' => $start_date, 'end_date' => $end_date]);
+            } 
+            if (preg_match_all($patternDetails, $projectText, $matches, PREG_SET_ORDER))
+            {
+                dd($matches);
+                foreach($matches as $match)
+                {
+                    $project_name = trim($match['project_name']);
+                    $role = trim($match['role']);
+                    $start_date = $match['start_date'];
+                    $end_date = $match['end_date'];
+                }
+                Project::created
+                (['project_name' => $project_name, 'role' => $role, 'start_date' => $start_date, 'end_date' => $end_date]);
+            } 
+            else
+            {
+                echo "Bagian Project tidak ditemukan.";
             }
         }
     }

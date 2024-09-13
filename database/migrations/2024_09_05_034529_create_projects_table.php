@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('project_name');
             $table->string('role');
-            $table->string('year');
+            $table->string('start_date');
+            $table->string('end_date');
             $table->timestamps();
         });
     }
