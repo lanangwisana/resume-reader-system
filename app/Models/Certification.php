@@ -10,5 +10,5 @@ class Certification extends Model
     use HasFactory;
     protected $table = 'certifications';
     protected $primaryKey = 'id';
-    protected $fillable = ['certification_name', 'organizer', 'year'];
+    protected $fillable = ['certification_name', 'organizer', 'start_date', 'end_date'];
 }
