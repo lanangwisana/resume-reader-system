@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('certification_name');
             $table->string('organizer');
-            $table->string('year');
+            $table->string('start_date');
+            $table->string('end_date');
             $table->timestamps();
         });
     }
