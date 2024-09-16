@@ -41,14 +41,16 @@ class PdfToTextController extends Controller
         //Ekstrak text work experiences
         $extractedText = $text;
         $patternWorkExperience = '/Work experience\s*(?P<content>.*?)\s*(?=Projects|Project|$)/si';
-        $patternDetails = '/(?P<company>[^\n]+)\s*-\s*[^\n]*\s*(?P<start_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*–\s*(?P<end_date>[a-zA-Z]{3}\s+\d{4})\s*(?P<position>[^\n]+)/';
-        $patternDetails1 = '/(?P<company>[^\n]+)\s*-\s*[^\n]*\s*(?P<start_date>[a-zA-Z]{3})\s*-\s*(?P<end_date>[a-zA-Z]{3}\s+\d{4})\s*(?P<position>[^\n]+)/i';
+        // pattern untuk menampilakn date dengan format MMM YYYY - MMM YYYY
+        $patternDetail = '/(?P<company>[^\n]+)\s*-\s*[^\n]*\s*(?P<start_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*–\s*(?P<end_date>[a-zA-Z]{3}\s+\d{4})\s*(?P<position>[^\n]+)/';
+        // pattern untuk menampilkan date dengan format MMM - MMM YYY
+        $patternDetails = '/(?P<company>[^\n]+)\s*-\s*[^\n]*\s*(?P<start_date>[a-zA-Z]{3})\s*-\s*(?P<end_date>[a-zA-Z]{3}\s+\d{4})\s*(?P<position>[^\n]+)/i';
 
         
         if (preg_match($patternWorkExperience, $extractedText, $matches)) 
         {
             $workExperienceText = $matches['content'];
-            if(preg_match_all($patternDetails, $workExperienceText, $matches, PREG_SET_ORDER)) 
+            if(preg_match_all($patternDetail, $workExperienceText, $matches, PREG_SET_ORDER)) 
             {
                 // dd($matches);
                 foreach ($matches as $match) 
@@ -68,7 +70,7 @@ class PdfToTextController extends Controller
                     ]);
                 }
             } 
-            if(preg_match_all($patternDetails1, $workExperienceText, $matches, PREG_SET_ORDER))
+            if(preg_match_all($patternDetails, $workExperienceText, $matches, PREG_SET_ORDER))
             { 
                 // dd($matches);
                 foreach ($matches as $match) 
@@ -97,29 +99,16 @@ class PdfToTextController extends Controller
 
     private function extractProject($text){
         $patternProject = '/Project\s*(?P<content>.*?)\s*(?=Competition|competition|$)/si';
-        //pattern untuk menampilkan date dengan format MMM - MMM/YYYY.
+        //pattern untuk menampilkan date dengan format MMM - MMM YYYY.
         $patternDetail = '/(?P<project_name>[^\n]+)\s*-\s*[^\n]*\s*(?P<start_date>[a-zA-Z]{3})\s*-\s*(?P<end_date>[a-zA-Z]{3}\s*\d{4})\s*(?P<role>[^\n]+)/i';
-        //pattern untuk menampilakn date dengan format MMM/YYYY - MMM/YYYY
-        $patternDetails = '/(?P<project_name>[^\n]+)\s*-\s*[^\n]*\s*(?P<start_date>[a-zA-Z]{3}\s*\d{4})\s*-\s*(?P<end_date>[a-zA-Z]{3}\s*\d{4})\s*(?P<role>[^\n]+)/i';
+        //pattern untuk menampilakn date dengan format MMM YYYY - MMM YYYY
+        $patternDetails = '/^(?P<project_name>[\w\s]+)\s*(?P<additional_info>[\w\s]*)\s*(?P<start_date>[a-zA-Z]{3}\d{4})\s*-\s*(?P<end_date>[a-zA-Z]{3}\d{4})?\s*(?P<role>[\w\s]+)?$/im';
 
         if(preg_match($patternProject, $text, $matches))
         {
             $projectText = $matches['content'];
-            // dd($projectText);
-            if(preg_match_all($patternDetail, $projectText, $matches, PREG_SET_ORDER))
-            {
-                // dd($matches);
-                foreach($matches as $match)
-                {
-                    $project_name = trim($match['project_name']);
-                    $role = trim($match['role']);
-                    $start_date = $match['start_date'];
-                    $end_date = $match['end_date'];
-                }
-                Project::created
-                (['project_name' => $project_name, 'role' => $role, 'start_date' => $start_date, 'end_date' => $end_date]);
-            } 
-            if (preg_match_all($patternDetails, $projectText, $matches, PREG_SET_ORDER))
+            // dd($projectText); 
+            if(preg_match_all($patternDetails, $projectText, $matches, PREG_SET_ORDER))
             {
                 dd($matches);
                 foreach($matches as $match)
@@ -129,9 +118,22 @@ class PdfToTextController extends Controller
                     $start_date = $match['start_date'];
                     $end_date = $match['end_date'];
                 }
-                Project::created
+                Project::create
                 (['project_name' => $project_name, 'role' => $role, 'start_date' => $start_date, 'end_date' => $end_date]);
             } 
+            // if (preg_match_all($patternDetails, $projectText, $matches, PREG_SET_ORDER))
+            // {
+            //     dd($matches);
+            //     foreach($matches as $match)
+            //     {
+            //         $project_name = trim($match['project_name']);
+            //         $role = trim($match['role']);
+            //         $start_date = $match['start_date'];
+            //         $end_date = $match['end_date'];
+            //     }
+            //     Project::create
+            //     (['project_name' => $project_name, 'role' => $role, 'start_date' => $start_date, 'end_date' => $end_date]);
+            // } 
             else
             {
                 echo "Bagian Project tidak ditemukan.";
