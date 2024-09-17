@@ -126,19 +126,19 @@ class PdfToTextController extends Controller
                     (['project_name' => $project_name, 'role' => $role, 'start_date' => $start_date, 'end_date' => $end_date]);
                 }
             } 
-            // else if(preg_match_all($patternDetails, $projectText, $matches, PREG_SET_ORDER))
-            // {
-            //     // dd($matches);
-            //     foreach($matches as $match)
-            //     {
-            //         $project_name = trim($match['project_name']);
-            //         $role = trim($match['role']);
-            //         $start_date = $match['start_date'];
-            //         $end_date = $match['end_date'];
-            //     }
-            //     Project::create
-            //     (['project_name' => $project_name, 'role' => $role, 'start_date' => $start_date, 'end_date' => $end_date]);
-            // } 
+            else if(preg_match_all($patternDetails, $projectText, $matches, PREG_SET_ORDER))
+            {
+                // dd($matches);
+                foreach($matches as $match)
+                {
+                    $project_name = trim($match['project_name']);
+                    $role = trim($match['role']);
+                    $start_date = $match['start_date'];
+                    $end_date = $match['end_date'];
+                }
+                Project::create
+                (['project_name' => $project_name, 'role' => $role, 'start_date' => $start_date, 'end_date' => $end_date]);
+            } 
             else
             {
                 echo "Bagian Project tidak ditemukan.";
@@ -146,38 +146,38 @@ class PdfToTextController extends Controller
         }
     }
 
-    // private function extractCompetition($text){
-    //     $patternCompetition = '/Competition\s*(?P<content>.*?)\s*(?=certificate|Certificate|$)/si';
+    private function extractCompetition($text){
+        $patternCompetition = '/Competition\s*(?P<content>.*?)\s*(?=certificate|Certificate|$)/si';
 
-    //     if(preg_match($patternCompetition, $text, $matches)){
-    //         $competitionText = $matches['content'];
-    //         // dd($competitionText);
-    //     }
-    // }
+        if(preg_match($patternCompetition, $text, $matches)){
+            $competitionText = $matches['content'];
+            // dd($competitionText);
+        }
+    }
 
-    // private function extractCertificate($text){
-    //     $patternCertificate = '/Certificate\s*(?P<content>.*?)\s*(?=Skill|Skills|$)/si';
-    //     if(preg_match($patternCertificate, $text, $matches)){
-    //         $CertificateText = $matches['content'];
-    //         // dd($CertificateText);
-    //         $patternDetail = '/(?P<certification_name>[^\t\n]+)\s*\n(?P<organizer>[^\n]+)\s*(?:\t)?(?P<start_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*-\s*(?P<end_date>[a-zA-Z]{3}\s+\d{4})/i';
-    //         if(preg_match_all($patternDetail, $CertificateText, $matches, PREG_SET_ORDER)){
-    //             dd($matches);
-    //             foreach($matches as $match){
-    //                 $certification_name = trim($match['certification_name']);
-    //                 $organizer = trim($match['organizer']);
-    //                 $start_date = $match['start_date'];
-    //                 $end_date = $match['end_date'];
-    //                 // Simpan ke database
-    //                 ExtractedText::create
-    //                 ([
-    //                     'certification_name' => $certification_name, 
-    //                     'organizer' => $organizer, 
-    //                     'start_date' => $start_date, 
-    //                     'end_date' => $end_date
-    //                 ]);
-    //             }
-    //         }
-    //     };
-    // }
+    private function extractCertificate($text){
+        $patternCertificate = '/Certificate\s*(?P<content>.*?)\s*(?=Skill|Skills|$)/si';
+        if(preg_match($patternCertificate, $text, $matches)){
+            $CertificateText = $matches['content'];
+            // dd($CertificateText);
+            $patternDetail = '/(?P<certification_name>[^\t\n]+)\s*\n(?P<organizer>[^\n]+)\s*(?:\t)?(?P<start_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*-\s*(?P<end_date>[a-zA-Z]{3}\s+\d{4})/i';
+            if(preg_match_all($patternDetail, $CertificateText, $matches, PREG_SET_ORDER)){
+                dd($matches);
+                foreach($matches as $match){
+                    $certification_name = trim($match['certification_name']);
+                    $organizer = trim($match['organizer']);
+                    $start_date = $match['start_date'];
+                    $end_date = $match['end_date'];
+                    // Simpan ke database
+                    ExtractedText::create
+                    ([
+                        'certification_name' => $certification_name, 
+                        'organizer' => $organizer, 
+                        'start_date' => $start_date, 
+                        'end_date' => $end_date
+                    ]);
+                }
+            }
+        };
+    }
 }
