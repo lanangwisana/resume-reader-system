@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Competition;
 use App\Models\ExtractedText;
 use App\Models\Project;
 use Illuminate\Http\Request;
@@ -33,7 +34,7 @@ class PdfToTextController extends Controller
         // Fungsi ekstraksi untuk Project
         $this->extractProject($text);
         // Fungsi Ekstraksi untuk Competition
-        // $this->extractCompetition($text); 
+        $this->extractCompetition($text); 
         // Fungsi Ekstraksi untuk Certificate
         // $this->extractCertificate($text);
         // Tampilkan teks yang diekstrak ke halaman
@@ -105,11 +106,32 @@ class PdfToTextController extends Controller
     }
 
     private function extractCompetition($text){
-        $patternCompetition = '/Competition\s*(?P<content>.*?)\s*(?=certificate|Certificate|$)/si';
+        $patternCompetition = '/Competition\s*(?P<content>.*?)\s*(?=certificate|Certificate|$)/s';
 
         if(preg_match($patternCompetition, $text, $matches)){
             $competitionText = $matches['content'];
             // dd($competitionText);
+            $patternDetail ='/(?P<competition_name>[^\n]+?)\s*-\s*(?P<organizer>[^\n]+?)\s*(?P<start_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*-\s*(?P<end_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*(?P<achievement>[^\n]+)/i';
+            if(preg_match_all($patternDetail, $competitionText, $matches, PREG_SET_ORDER)){
+                // dd($matches);
+                foreach($matches as $match){
+                    $competition_name = trim($match['competition_name']);
+                    $organizer = trim($match['organizer']);
+                    $start_date = $match['start_date'];
+                    $end_date = $match['end_date'];
+                    $achievement = trim($match['achievement']);
+
+                    // Simpan ke database
+                    Competition::create
+                    ([
+                        'competition_name' => $competition_name, 
+                        'organizer' => $organizer, 
+                        'start_date' => $start_date, 
+                        'end_date' => $end_date, 
+                        'achievement' => $achievement
+                    ]);
+                }
+            }
         }
     }
 
