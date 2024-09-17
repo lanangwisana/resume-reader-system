@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('competitions', function (Blueprint $table) {
             $table->id();
             $table->string('competition_name');
-            $table->string('year');
             $table->string('organizer');
             $table->string('achievement');
+            $table->string('start_date');
+            $table->string('end_date');
             $table->timestamps();
         });
     }
