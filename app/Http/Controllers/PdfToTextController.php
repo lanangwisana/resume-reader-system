@@ -41,40 +41,14 @@ class PdfToTextController extends Controller
     }
 
     private function extractWorkExperience($text){
-        //Ekstrak text work experiences
-        $extractedText = $text;
         $patternWorkExperience = '/Work experience\s*(?P<content>.*?)\s*(?=Projects|Project|$)/si';
-        // pattern untuk menampilakn date dengan format MMM YYYY - MMM YYYY
-        $patternDetail = '/(?P<company>[^\n]+)\s*-\s*[^\n]*\s*(?P<start_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*–\s*(?P<end_date>[a-zA-Z]{3}\s+\d{4})\s*(?P<position>[^\n]+)/';
-        // pattern untuk menampilkan date dengan format MMM - MMM YYY
-        $patternDetails = '/(?P<company>[^\n]+)\s*-\s*[^\n]*\s*(?P<start_date>[a-zA-Z]{3})\s*-\s*(?P<end_date>[a-zA-Z]{3}\s+\d{4})\s*(?P<position>[^\n]+)/i';
-
+        $patternDetail = '/(?P<company>[^\n]+)\s*-\s*[^\n]*\s*(?P<start_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*-\s*(?P<end_date>[a-zA-Z]{3}\s+\d{4})\s*(?P<position>[^\n]+)/';
         
-        if (preg_match($patternWorkExperience, $extractedText, $matches)) 
+        if (preg_match($patternWorkExperience, $text, $matches)) 
         {
             $workExperienceText = $matches['content'];
             if(preg_match_all($patternDetail, $workExperienceText, $matches, PREG_SET_ORDER)) 
             {
-                // dd($matches);
-                foreach ($matches as $match) 
-                {
-                    $position = trim($match['position']);
-                    $company = trim($match['company']);
-                    $startDate = $match['start_date'];
-                    $endDate = $match['end_date'];
-
-                    // Simpan ke database
-                    ExtractedText::create
-                    ([
-                        'position' => $position, 
-                        'company' => $company, 
-                        'start_date' => $startDate, 
-                        'end_date' => $endDate
-                    ]);
-                }
-            } 
-            if(preg_match_all($patternDetails, $workExperienceText, $matches, PREG_SET_ORDER))
-            { 
                 // dd($matches);
                 foreach ($matches as $match) 
                 {
