@@ -10,5 +10,5 @@ class Competition extends Model
     use HasFactory;
     protected $table = 'competitions';
     protected $primaryKey = 'id';
-    protected $fillable = ['competition_name', 'year', 'organizer', 'achievement'];
+    protected $fillable = ['competition_name', 'organizer', 'achievement', 'start_date', 'end_date'];
 }
