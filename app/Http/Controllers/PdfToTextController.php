@@ -147,9 +147,9 @@ class PdfToTextController extends Controller
         if(preg_match($patternCertificate, $text, $matches)){
             $CertificateText = $matches['content'];
             // dd($CertificateText);
-            $patternDetail = '/(?P<certification_name>[^\n]+?)\s*-\s*(?P<organizer>[^\n]+?)\s*(?P<start_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*-\s*(?P<end_date>[a-zA-Z]{3}\s*\d{4})/i';
+            $patternDetail = '/(?P<certification_name>[^\n]+?)\s*(-\s*[^\n]*)?\s*(?P<start_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*-\s*(?P<end_date>[a-zA-Z]{3}\s*\d{4})\s*(?P<organizer>[^\n]+)/i';
             if(preg_match_all($patternDetail, $CertificateText, $matches, PREG_SET_ORDER)){
-                dd($matches);  
+                // dd($matches);  
                 foreach($matches as $match){
                     $certification_name = trim($match['certification_name']);
                     $organizer = trim($match['organizer']);
