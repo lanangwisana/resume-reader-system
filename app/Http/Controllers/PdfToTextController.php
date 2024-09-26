@@ -6,6 +6,7 @@ use App\Models\Certification;
 use App\Models\Competition;
 use App\Models\ExtractedText;
 use App\Models\Project;
+use App\Models\WorkExperience;
 use Illuminate\Http\Request;
 use Smalot\PdfParser\Parser;
 
@@ -60,7 +61,7 @@ class PdfToTextController extends Controller
                     $endDate = $match['end_date'];
 
                     // Simpan ke database
-                    ExtractedText::create
+                    WorkExperience::create
                     ([
                         'position' => $position, 
                         'company' => $company, 
