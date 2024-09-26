@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Certification;
 use App\Models\Competition;
-use App\Models\ExtractedText;
 use App\Models\Project;
 use App\Models\WorkExperience;
 use Illuminate\Http\Request;
