@@ -33,25 +33,35 @@ class PdfToTextController extends Controller
         //Fungsi ekstraksi untuk Work Experience
         $this->extractWorkExperience($text);
         // Fungsi ekstraksi untuk Project
-        $this->extractProject($text);
+        // $this->extractProject($text);
         // Fungsi Ekstraksi untuk Competition
-        $this->extractCompetition($text); 
+        // $this->extractCompetition($text); 
         // Fungsi Ekstraksi untuk Certificate
-        $this->extractCertificate($text);
+        // $this->extractCertificate($text);
         // Tampilkan teks yang diekstrak ke halaman
         return view('result', ['text' => $text]);
     }
 
     private function extractWorkExperience($text){
+        // Mencari data untuk begian work experience hingga sebelum bagian project
         $patternWorkExperience = '/Work experience\s*(?P<content>.*?)\s*(?=Projects|Project|$)/si';
-        $patternDetail = '/(?P<company>[^\n]+)\s*-\s*[^\n]*\s*(?P<start_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*-\s*(?P<end_date>[a-zA-Z]{3}\s+\d{4})\s*(?P<position>[^\n]+)/';
-        
+
         if (preg_match($patternWorkExperience, $text, $matches)) 
         {
             $workExperienceText = $matches['content'];
+            dd($workExperienceText);
+            // $pattern = '/((?<=\d{1,2}\s*)?[a-zA-Z]{3})\s*(?<=\n\s*)?(?<=\d{4})?|(?<=\d{1,2}\s*)?(?<=\n\s*)?([a-zA-Z]{3}\s*(?<=\d{4)?)/';
+            // $processedText = preg_replace($pattern, '$1 $2', $workExperienceText);
+
+            // dd($processedText);
+            // Regex dengan pola 
+            // <company> \t<start_date{MMM YYY}> - <end_date{MMM YYY}>
+            // <position>
+            $patternDetail = '/(?P<company>[^\n]+)\s*(?P<start_date>(?:\s*\d{1,2}\s*)?[a-zA-Z]{3}(?:\s+\d{4})?)\s*[-–]\s*(?P<end_date>(?:\s*\d{1,2}\s*)?(?:\n\s*)?[a-zA-Z]{3}\s+\d{4})\s*(?P<position>[^\n]+)/si';
+
             if(preg_match_all($patternDetail, $workExperienceText, $matches, PREG_SET_ORDER)) 
             {
-                // dd($matches);
+                dd($matches);
                 foreach ($matches as $match) 
                 {
                     $position = trim($match['position']);
