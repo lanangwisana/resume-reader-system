@@ -30,38 +30,39 @@ class PdfToTextController extends Controller
         $pdf = $parser->parseFile($pdfPath);
         $text = $pdf->getText();
 
+        // dd($text);
+
         //Fungsi ekstraksi untuk Work Experience
         $this->extractWorkExperience($text);
         // Fungsi ekstraksi untuk Project
-        // $this->extractProject($text);
+        $this->extractProject($text);
         // Fungsi Ekstraksi untuk Competition
-        // $this->extractCompetition($text); 
+        $this->extractCompetition($text); 
         // Fungsi Ekstraksi untuk Certificate
-        // $this->extractCertificate($text);
+        $this->extractCertificate($text);
         // Tampilkan teks yang diekstrak ke halaman
         return view('result', ['text' => $text]);
     }
 
     private function extractWorkExperience($text){
         // Mencari data untuk begian work experience hingga sebelum bagian project
-        $patternWorkExperience = '/Work experience\s*(?P<content>.*?)\s*(?=Projects|Project|$)/si';
+        $patternWorkExperience = '/Work experience\s*(?P<content>.*?)\s*(?=Projects|Project|projects|project|Competitions|Competition|competitions|competition|Certificates|Certificate|certificates|certificate|Skills|Skill|skills|skill|$)/si';
 
         if (preg_match($patternWorkExperience, $text, $matches)) 
         {
             $workExperienceText = $matches['content'];
             dd($workExperienceText);
-            // $pattern = '/((?<=\d{1,2}\s*)?[a-zA-Z]{3})\s*(?<=\n\s*)?(?<=\d{4})?|(?<=\d{1,2}\s*)?(?<=\n\s*)?([a-zA-Z]{3}\s*(?<=\d{4)?)/';
-            // $processedText = preg_replace($pattern, '$1 $2', $workExperienceText);
-
-            // dd($processedText);
-            // Regex dengan pola 
-            // <company> \t<start_date{MMM YYY}> - <end_date{MMM YYY}>
-            // <position>
-            $patternDetail = '/(?P<company>[^\n]+)\s*(?P<start_date>(?:\s*\d{1,2}\s*)?[a-zA-Z]{3}(?:\s+\d{4})?)\s*[-–]\s*(?P<end_date>(?:\s*\d{1,2}\s*)?(?:\n\s*)?[a-zA-Z]{3}\s+\d{4})\s*(?P<position>[^\n]+)/si';
+            
+            // Preprocessing menggunakan regex untuk memastikan company, start_date, dan end_date berada dalam satu baris
+            $pattern = '/(\d{1,2}\s*[a-zA-Z]{3})\s*\n\s*(\d{4})/';
+            $replacement = '$1 $2';
+            $workExperienceText = preg_replace($pattern, $replacement, $workExperienceText);
+            // regex yang paling mendekati.
+            $patternDetail = '/(?P<company>[^\n]+)\s*(?:\t)?\s*(?P<start_date>(?:\d{1,2}\s*)?[a-zA-Z]{3}(?:\s+\d{4})?)\s*[-–]?\s*(?:\n\s*|\t)?(?P<end_date>(?:\d{1,2}\s*)?(?:\n\s*)?[a-zA-Z]{3}(?:\s+\d{4}|\n\s*\d{4}))\s*(?P<position>[^\n]+)/i';
 
             if(preg_match_all($patternDetail, $workExperienceText, $matches, PREG_SET_ORDER)) 
             {
-                dd($matches);
+                // dd($matches);
                 foreach ($matches as $match) 
                 {
                     $position = trim($match['position']);
@@ -87,7 +88,7 @@ class PdfToTextController extends Controller
     }
 
     private function extractProject($text){
-        $patternProject = '/Project\s*(?P<content>.*?)\s*(?=Competition|competition|$)/si';
+        $patternProject = '/Project\s*(?P<content>.*?)\s*(?=Work Experiences|Work Experience|Work experiences|Work experience|work Experiences|work Experience|work experiences|work experience|Competitions|Competition|competitions|competition|Certificates|Certificate|certificates|certificate|Skills|Skill|skills|skill|$)/si';
         $patternDetail = '/(?P<project_name>[^\n]+?)\s*(-\s*[^\n]*)?\s*(?P<start_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*-\s*(?P<end_date>[a-zA-Z]{3}\s*\d{4})\s*(?P<role>[^\n]+)/i';
 
         if(preg_match($patternProject, $text, $matches))
@@ -120,7 +121,7 @@ class PdfToTextController extends Controller
     }
 
     private function extractCompetition($text){
-        $patternCompetition = '/Competition\s*(?P<content>.*?)\s*(?=certificate|Certificate|$)/s';
+        $patternCompetition = '/Competition\s*(?P<content>.*?)\s*(?=Work Experiences|Work Experience|Work experiences|Work experience|work Experiences|work Experience|work experiences|work experience|Projects|Project|projects|project|Certificates|Certificate|certificates|certificate|Skills|Skill|skills|skill|$)/s';
 
         if(preg_match($patternCompetition, $text, $matches)){
             $competitionText = $matches['content'];
@@ -152,7 +153,7 @@ class PdfToTextController extends Controller
     }
 
     private function extractCertificate($text){
-        $patternCertificate = '/Certificate\s*(?P<content>.*?)\s*(?=Skill|Skills|$)/si';
+        $patternCertificate = '/Certificate\s*(?P<content>.*?)\s*(?=Work Experiences|Work Experience|Work experiences|Work experience|work Experiences|work Experience|work experiences|work experience|Projects|Project|projects|project|Competitions|Competition|competitions|competition|Skills|Skill|skills|skill|$)/si';
 
         if(preg_match($patternCertificate, $text, $matches)){
             $CertificateText = $matches['content'];
