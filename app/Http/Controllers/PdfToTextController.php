@@ -31,15 +31,14 @@ class PdfToTextController extends Controller
         $text = $pdf->getText();
 
         // dd($text);
-
         //Fungsi ekstraksi untuk Work Experience
         $this->extractWorkExperience($text);
         // Fungsi ekstraksi untuk Project
-        // $this->extractProject($text);
+        $this->extractProject($text);
         // Fungsi Ekstraksi untuk Competition
-        // $this->extractCompetition($text); 
+        $this->extractCompetition($text); 
         // Fungsi Ekstraksi untuk Certificate
-        // $this->extractCertificate($text);
+        $this->extractCertificate($text);
         // Tampilkan teks yang diekstrak ke halaman
         return view('result', ['text' => $text]);
     }
@@ -52,15 +51,14 @@ class PdfToTextController extends Controller
         {
             $workExperienceText = $matches['content'];
             // dd($workExperienceText);
-            
-            // $patternDetail = '/(?P<company>[^\n]+)\s*(?P<start_date>(?:\d{2})?\s*[a-zA-Z]{3}\s*(?:\d{4})?)\s*[-–]?\s*(?P<end_date>(?:\d{2})?\s*\n[a-zA-Z]{3}\s*\d{4})\s*\n(?P<position>[^\n]+)/';
+
             // $patternDetail = '/(?P<company>[^\n]+)\s*(?P<start_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*-\s*(?P<end_date>[a-zA-Z]{3}\s+\d{4})\s*(?P<position>[^\n]+)/';
             // regex yang paling mendekati.
-            $patternDetail = '/(?P<company>[^\n]+)\s*(?P<start_date>(?:\d{1,2}\s*)?[a-zA-Z]{3}(?:\s+\d{4})?)\s*[-–]?\s*(?:\n\s*|\t)?(?P<end_date>(?:\d{1,2}\s*)?(?:\n\s*)?[a-zA-Z]{3}(?:\s+\d{4}|\n\s*\d{4}))\s*\n(?P<position>[^\n]+)/i'; //Untuk regex ini sudah berhasil menangkap data tanggal denggan format dd MMM YYYY namun kedalanya adalah terdapat newline setelah tanggal pada bagian end_date sehingga memunculkan pola baru
+            $patternDetail = '/(?P<company>[^\n]+)\s*(?:\t)?\s*(?P<start_date>(?:\d{1,2}\s*)?[a-zA-Z]{3}(?:\s+\d{4})?)\s*[-–]?\s*(?:\n\s*|\t)?(?P<end_date>(?:\d{1,2}\s*)?(?:\n\s*)?[a-zA-Z]{3}(?:\s+\d{4}|\n\s*\d{4}))\s*(?P<position>[^\n]+)/i'; //Untuk regex ini sudah berhasil menangkap data tanggal denggan format dd MMM YYYY namun kedalanya adalah terdapat newline setelah tanggal pada bagian end_date sehingga memunculkan pola baru
 
             if(preg_match_all($patternDetail, $workExperienceText, $matches, PREG_SET_ORDER)) 
             {
-                dd($matches);
+                // dd($matches);
                 foreach ($matches as $match) 
                 {
                     $position = trim($match['position']);
@@ -69,12 +67,12 @@ class PdfToTextController extends Controller
                     $endDate = $match['end_date'];
 
                     // Validasi end date
-                    if(!preg_match('/^[a-zA-Z]{3}\s+\d{4}$/', $endDate)){
+                    if(!preg_match('/^(?:\d{1,2}\s*)?[a-zA-Z]{3}\s+\d{4}$/', $endDate)){
                         echo "End Date harus memiliki format tanggal MMM YYYY. \n";
                         continue;
                     }
                     // Validasi start date
-                    if(preg_match('/^[a-zA-Z]{3}\s+\d{4}$/', $startDate)){
+                    if(preg_match('/^(?:\d{1,2}\s*)?[a-zA-Z]{3}\s+\d{4}$/', $startDate)){
                         // Start date sudah sesuai dengan format MMM YYYY
                         // Simpan ke database
                         WorkExperience::create
@@ -84,7 +82,7 @@ class PdfToTextController extends Controller
                             'start_date' => $startDate, 
                             'end_date' => $endDate
                         ]);
-                    } elseif(preg_match('/^[a-zA-Z]{3}$/', $startDate)){
+                    } elseif(preg_match('/^(?:\d{1,2}\s*)?[a-zA-Z]{3}$/', $startDate)){
                         // Ambil tahun dari end date
                         $endYear =(int)substr($endDate, -4);
                         // Ambil bulan dari end_date
@@ -122,12 +120,14 @@ class PdfToTextController extends Controller
 
     private function extractProject($text){
         $patternProject = '/Project\s*(?P<content>.*?)\s*(?=Work Experiences|Work Experience|Work experiences|Work experience|work Experiences|work Experience|work experiences|work experience|Competitions|Competition|competitions|competition|Certificates|Certificate|certificates|certificate|Skills|Skill|skills|skill|$)/si';
-        $patternDetail = '/(?P<project_name>[^\n]+?)\s*(-\s*[^\n]*)?\s*(?P<start_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*-\s*(?P<end_date>[a-zA-Z]{3}\s*\d{4})\s*(?P<role>[^\n]+)/i';
 
         if(preg_match($patternProject, $text, $matches))
         {
             $projectText = $matches['content'];
             // dd($projectText); 
+
+            $patternDetail = '/(?P<project_name>[^\n]+?)\s*(-\s*[^\n]*)?\s*(?P<start_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*-\s*(?P<end_date>[a-zA-Z]{3}\s*\d{4})\s*(?P<role>[^\n]+)/i';
+
             if(preg_match_all($patternDetail, $projectText, $matches, PREG_SET_ORDER))
             {
                 // dd($matches);
@@ -138,14 +138,51 @@ class PdfToTextController extends Controller
                     $start_date = $match['start_date'];
                     $end_date = $match['end_date'];
 
-                    // Simpan ke database
-                    Project::create
-                    ([
-                        'project_name' => $project_name, 
-                        'role' => $role, 
-                        'start_date' => $start_date, 
-                        'end_date' => $end_date
-                    ]);
+                     // Validasi end date
+                    if(!preg_match('/^[a-zA-Z]{3}\s+\d{4}$/', $end_date)){
+                        echo "End Date harus memiliki format tanggal MMM YYYY. \n";
+                        continue;
+                    }
+                    // Validasi start date
+                    if(preg_match('/^[a-zA-Z]{3}\s+\d{4}$/', $start_date)){
+                        // Start date sudah sesuai dengan format MMM YYYY
+                        // Simpan ke database
+                        Project::create
+                        ([
+                            'project_name' => $project_name, 
+                            'role' => $role, 
+                            'start_date' => $start_date, 
+                            'end_date' => $end_date
+                        ]);
+                    } elseif(preg_match('/^[a-zA-Z]{3}$/', $start_date)){
+                        // Ambil tahun dari end date
+                        $endYear =(int)substr($end_date, -4);
+                        // Ambil bulan dari end_date
+                        $endMonth = substr($end_date, 0, 3);
+
+                        // Logika untuk menentukan tahun pada start_date
+                        $month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', "Jul", 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+                        $startMonthIndex = array_search($start_date, $month);
+                        $endMonthIndex = array_search($endMonth, $month);
+
+                        if ($startMonthIndex > $endMonthIndex) {
+                            $startYear = $endYear - 1;
+                        } else {
+                            $startYear = $endYear;
+                        }
+
+                        // Tambahkan tahun kepada start_date
+                        $start_date = $start_date . ' ' . $startYear;
+                        // Simpan ke database
+                        Project::create
+                        ([
+                            'project_name' => $project_name, 
+                            'role' => $role, 
+                            'start_date' => $start_date, 
+                            'end_date' => $end_date
+                        ]);
+                    } 
                 }
             } else {
                 echo "Bagian Project tidak ditemukan.";
@@ -169,15 +206,53 @@ class PdfToTextController extends Controller
                     $end_date = $match['end_date'];
                     $achievement = trim($match['achievement']);
 
-                    // Simpan ke database
-                    Competition::create
-                    ([
-                        'competition_name' => $competition_name, 
-                        'organizer' => $organizer, 
-                        'start_date' => $start_date, 
-                        'end_date' => $end_date, 
-                        'achievement' => $achievement
-                    ]);
+                    // Validasi end date
+                    if(!preg_match('/^[a-zA-Z]{3}\s+\d{4}$/', $end_date)){
+                        echo "End Date harus memiliki format tanggal MMM YYYY. \n";
+                        continue;
+                    }
+                    // Validasi start date
+                    if(preg_match('/^[a-zA-Z]{3}\s+\d{4}$/', $start_date)){
+                        // Start date sudah sesuai dengan format MMM YYYY
+                        // Simpan ke database
+                        Competition::create
+                        ([
+                            'competition_name' => $competition_name, 
+                            'organizer' => $organizer, 
+                            'start_date' => $start_date, 
+                            'end_date' => $end_date, 
+                            'achievement' => $achievement
+                        ]);
+                    } elseif(preg_match('/^[a-zA-Z]{3}$/', $start_date)){
+                        // Ambil tahun dari end date
+                        $endYear =(int)substr($end_date, -4);
+                        // Ambil bulan dari end_date
+                        $endMonth = substr($end_date, 0, 3);
+
+                        // Logika untuk menentukan tahun pada start_date
+                        $month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', "Jul", 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+                        $startMonthIndex = array_search($start_date, $month);
+                        $endMonthIndex = array_search($endMonth, $month);
+
+                        if ($startMonthIndex > $endMonthIndex) {
+                            $startYear = $endYear - 1;
+                        } else {
+                            $startYear = $endYear;
+                        }
+
+                        // Tambahkan tahun kepada start_date
+                        $start_date = $start_date . ' ' . $startYear;
+                        // Simpan ke database
+                        Competition::create
+                        ([
+                            'competition_name' => $competition_name, 
+                            'organizer' => $organizer, 
+                            'start_date' => $start_date, 
+                            'end_date' => $end_date, 
+                            'achievement' => $achievement
+                        ]);
+                    } 
                 }
             }
         } else {
