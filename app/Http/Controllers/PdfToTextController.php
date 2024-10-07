@@ -207,12 +207,12 @@ class PdfToTextController extends Controller
                     $achievement = trim($match['achievement']);
 
                     // Validasi end date
-                    if(!preg_match('/^[a-zA-Z]{3}\s+\d{4}$/', $end_date)){
+                    if(!preg_match('/^(?:\d{1,2}\s*)?[a-zA-Z]{3}\s+\d{4}$/', $end_date)){
                         echo "End Date harus memiliki format tanggal MMM YYYY. \n";
                         continue;
                     }
                     // Validasi start date
-                    if(preg_match('/^[a-zA-Z]{3}\s+\d{4}$/', $start_date)){
+                    if(preg_match('/^(?:\d{1,2}\s*)?[a-zA-Z]{3}\s+\d{4}$/', $start_date)){
                         // Start date sudah sesuai dengan format MMM YYYY
                         // Simpan ke database
                         Competition::create
@@ -223,7 +223,7 @@ class PdfToTextController extends Controller
                             'end_date' => $end_date, 
                             'achievement' => $achievement
                         ]);
-                    } elseif(preg_match('/^[a-zA-Z]{3}$/', $start_date)){
+                    } elseif(preg_match('/^(?:\d{1,2}\s*)?[a-zA-Z]{3}$/', $start_date)){
                         // Ambil tahun dari end date
                         $endYear =(int)substr($end_date, -4);
                         // Ambil bulan dari end_date
