@@ -12,14 +12,17 @@ use Smalot\PdfParser\Parser;
 class PdfToTextController extends Controller
 {
     protected $workExperienceController;
+    protected $projectController;
     public function index() {
         return view('index');
     }
 
     public function __construct(
         ExtractWorkExperienceController $workExperienceController,
+        ExtractProjectController $projectController,
     ){
         $this->workExperienceController = $workExperienceController;
+        $this->projectController = $projectController;
     }
     public function extractText(Request $request) {
         $request->validate([
@@ -37,10 +40,11 @@ class PdfToTextController extends Controller
 
         if ($text) {
             $workExperience = $this->workExperienceController->extractWorkExperience($text);
-
+            $project = $this->projectController->extractProject($text);
             return view('result', [
                 'text' => $text,
                 'work_experience' => $workExperience,
+                'project' => $project
             ]);
         } else {
             return view('result', ['error' => 'Text extraction failed']);
