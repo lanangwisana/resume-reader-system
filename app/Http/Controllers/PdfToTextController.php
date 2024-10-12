@@ -50,8 +50,6 @@ class PdfToTextController extends Controller
             return view('result', ['error' => 'Text extraction failed']);
         }
         // dd($text);
-        // Fungsi ekstraksi untuk Project
-        // $this->extractProject($text);
         // Fungsi Ekstraksi untuk Competition
         // $this->extractCompetition($text); 
         // Fungsi Ekstraksi untuk Certificate
