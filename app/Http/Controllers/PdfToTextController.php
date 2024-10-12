@@ -20,7 +20,6 @@ class PdfToTextController extends Controller
         $request->validate([
             'pdf_file' => 'required|mimes:pdf|max:2048',
         ]);
-
         // Simpan file PDF yang diupload
         $pdfFile = $request->file('pdf_file');
         $pdfPath = $pdfFile->getPathName();
@@ -50,15 +49,15 @@ class PdfToTextController extends Controller
         if (preg_match($patternWorkExperience, $text, $matches)) 
         {
             $workExperienceText = $matches['content'];
-            // dd($workExperienceText);
+            dd($workExperienceText);
 
             // $patternDetail = '/(?P<company>[^\n]+)\s*(?P<start_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*-\s*(?P<end_date>[a-zA-Z]{3}\s+\d{4})\s*(?P<position>[^\n]+)/';
             // regex yang paling mendekati.
-            $patternDetail = '/(?P<company>[^\n]+)\s*(?:\t)?\s*(?P<start_date>(?:\d{1,2}\s*)?[a-zA-Z]{3}(?:\s+\d{4})?)\s*[-–]?\s*(?:\n\s*|\t)?(?P<end_date>(?:\d{1,2}\s*)?(?:\n\s*)?[a-zA-Z]{3}(?:\s+\d{4}|\n\s*\d{4}))\s*(?P<position>[^\n]+)/i'; //Untuk regex ini sudah berhasil menangkap data tanggal denggan format dd MMM YYYY namun kedalanya adalah terdapat newline setelah tanggal pada bagian end_date sehingga memunculkan pola baru
+            $patternDetail = '/(?P<company>[^\n]+)\s*(?:\t)?\s*((?P<start_date>(?:\d{1,2}\s*)?[a-zA-Z]{3,9}(?:\s+\d{4})?))\s*[-–]?\s*(?:\n\s*|\t)?(?P<end_date>(?:\d{1,2}\s*)?(?:[\n\s*])?[a-zA-Z]{3}(?:\s+\d{4}|\n\s*\d{4}))\s*(?P<position>[^\n]+)/i'; //Untuk regex ini sudah berhasil menangkap data tanggal denggan format dd MMM YYYY namun kedalanya adalah terdapat newline setelah tanggal pada bagian end_date sehingga memunculkan pola baru(regex hanya 1 tipe saja)
 
             if(preg_match_all($patternDetail, $workExperienceText, $matches, PREG_SET_ORDER)) 
             {
-                // dd($matches);
+                dd($matches);
                 foreach ($matches as $match) 
                 {
                     $position = trim($match['position']);
