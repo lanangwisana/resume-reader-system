@@ -11,15 +11,21 @@ use Smalot\PdfParser\Parser;
 
 class PdfToTextController extends Controller
 {
+    protected $workExperienceController;
     public function index() {
         return view('index');
     }
 
-    public function extractText(Request $request) 
-    {
+    public function __construct(
+        ExtractWorkExperienceController $workExperienceController,
+    ){
+        $this->workExperienceController = $workExperienceController;
+    }
+    public function extractText(Request $request) {
         $request->validate([
             'pdf_file' => 'required|mimes:pdf|max:2048',
         ]);
+
         // Simpan file PDF yang diupload
         $pdfFile = $request->file('pdf_file');
         $pdfPath = $pdfFile->getPathName();
@@ -28,18 +34,26 @@ class PdfToTextController extends Controller
         $parser = new Parser();
         $pdf = $parser->parseFile($pdfPath);
         $text = $pdf->getText();
+        
+        if ($text) {
+            $workExperience = $this->workExperienceController->extractWorkExperience($text);
 
+            return view('result', [
+                'text' => $text,
+                'work_experience' => $workExperience,
+            ]);
+        } else {
+            return view('result', ['error' => 'Text extraction failed']);
+        }
         // dd($text);
-        //Fungsi ekstraksi untuk Work Experience
-        $this->extractWorkExperience($text);
         // Fungsi ekstraksi untuk Project
-        $this->extractProject($text);
+        // $this->extractProject($text);
         // Fungsi Ekstraksi untuk Competition
-        $this->extractCompetition($text); 
+        // $this->extractCompetition($text); 
         // Fungsi Ekstraksi untuk Certificate
-        $this->extractCertificate($text);
+        // $this->extractCertificate($text);
         // Tampilkan teks yang diekstrak ke halaman
-        return view('result', ['text' => $text]);
+        // return view('result', ['text' => $text]);
     }
 
     private function extractWorkExperience($text){
@@ -54,8 +68,7 @@ class PdfToTextController extends Controller
             // $patternDetail = '/(?P<company>[^\n]+)\s*(?P<start_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*-\s*(?P<end_date>[a-zA-Z]{3}\s+\d{4})\s*(?P<position>[^\n]+)/';
             // regex yang paling mendekati.
             $patternDetail = '/(?P<company>[^\n]+)\s*(?:\t)?\s*((?P<start_date>(?:\d{1,2}\s*)?[a-zA-Z]{3,9}(?:\s+\d{4})?))\s*[-–]?\s*(?:\n\s*|\t)?(?P<end_date>(?:\d{1,2}\s*)?(?:[\n\s*])?[a-zA-Z]{3}(?:\s+\d{4}|\n\s*\d{4}))\s*(?P<position>[^\n]+)/i'; //Untuk regex ini sudah berhasil menangkap data tanggal denggan format dd MMM YYYY namun kedalanya adalah terdapat newline setelah tanggal pada bagian end_date sehingga memunculkan pola baru(regex hanya 1 tipe saja) 
-            // aku mau makan nasi kuning
-            // Sekarang perubahan yang ada di master sudah bisa saya lihat pada branch feature_work_experience
+
             if(preg_match_all($patternDetail, $workExperienceText, $matches, PREG_SET_ORDER)) 
             {
                 // dd($matches);
