@@ -11,15 +11,21 @@ use Smalot\PdfParser\Parser;
 
 class PdfToTextController extends Controller
 {
+    protected $workExperienceController;
     public function index() {
         return view('index');
     }
 
-    public function extractText(Request $request) 
-    {
+    public function __construct(
+        ExtractWorkExperienceController $workExperienceController,
+    ){
+        $this->workExperienceController = $workExperienceController;
+    }
+    public function extractText(Request $request) {
         $request->validate([
             'pdf_file' => 'required|mimes:pdf|max:2048',
         ]);
+
         // Simpan file PDF yang diupload
         $pdfFile = $request->file('pdf_file');
         $pdfPath = $pdfFile->getPathName();
@@ -29,93 +35,25 @@ class PdfToTextController extends Controller
         $pdf = $parser->parseFile($pdfPath);
         $text = $pdf->getText();
 
-        // dd($text);
-        //Fungsi ekstraksi untuk Work Experience
-        $this->extractWorkExperience($text);
-        // Fungsi ekstraksi untuk Project
-        $this->extractProject($text);
-        // Fungsi Ekstraksi untuk Competition
-        $this->extractCompetition($text); 
-        // Fungsi Ekstraksi untuk Certificate
-        $this->extractCertificate($text);
-        // Tampilkan teks yang diekstrak ke halaman
-        return view('result', ['text' => $text]);
-    }
+        if ($text) {
+            $workExperience = $this->workExperienceController->extractWorkExperience($text);
 
-    private function extractWorkExperience($text){
-        // Mencari data untuk begian work experience hingga sebelum bagian project
-        $patternWorkExperience = '/Work experience\s*(?P<content>.*?)\s*(?=Projects|Project|projects|project|Competitions|Competition|competitions|competition|Certificates|Certificate|certificates|certificate|Skills|Skill|$)/s';
-
-        if (preg_match($patternWorkExperience, $text, $matches)) 
-        {
-            $workExperienceText = $matches['content'];
-            // dd($workExperienceText);
-
-            // $patternDetail = '/(?P<company>[^\n]+)\s*(?P<start_date>[a-zA-Z]{3}(?:\s+\d{4})?)\s*-\s*(?P<end_date>[a-zA-Z]{3}\s+\d{4})\s*(?P<position>[^\n]+)/';
-            // regex yang paling mendekati.
-            $patternDetail = '/(?P<company>[^\n]+)\s*(?:\t)?\s*((?P<start_date>(?:\d{1,2}\s*)?[a-zA-Z]{3,9}(?:\s+\d{4})?))\s*[-–]?\s*(?:\n\s*|\t)?(?P<end_date>(?:\d{1,2}\s*)?(?:[\n\s*])?[a-zA-Z]{3}(?:\s+\d{4}|\n\s*\d{4}))\s*(?P<position>[^\n]+)/i'; //Untuk regex ini sudah berhasil menangkap data tanggal denggan format dd MMM YYYY namun kedalanya adalah terdapat newline setelah tanggal pada bagian end_date sehingga memunculkan pola baru(regex hanya 1 tipe saja) 
-            // aku mau makan nasi kuning
-            // Sekarang perubahan yang ada di master sudah bisa saya lihat pada branch feature_work_experience
-            if(preg_match_all($patternDetail, $workExperienceText, $matches, PREG_SET_ORDER)) 
-            {
-                // dd($matches);
-                foreach ($matches as $match) 
-                {
-                    $position = trim($match['position']);
-                    $company = trim($match['company']);
-                    $startDate = $match['start_date'];
-                    $endDate = $match['end_date'];
-
-                    // Validasi end date
-                    if(!preg_match('/^(?:\d{1,2}\s*)?[a-zA-Z]{3}\s+\d{4}$/', $endDate)){
-                        echo "End Date harus memiliki format tanggal MMM YYYY. \n";
-                        continue;
-                    }
-                    // Validasi start date
-                    if(preg_match('/^(?:\d{1,2}\s*)?[a-zA-Z]{3}\s+\d{4}$/', $startDate)){
-                        // Start date sudah sesuai dengan format MMM YYYY
-                        // Simpan ke database
-                        WorkExperience::create
-                        ([
-                            'position' => $position, 
-                            'company' => $company, 
-                            'start_date' => $startDate, 
-                            'end_date' => $endDate
-                        ]);
-                    } elseif(preg_match('/^(?:\d{1,2}\s*)?[a-zA-Z]{3}$/', $startDate)){
-                        // Ambil tahun dari end date
-                        $endYear =(int)substr($endDate, -4);
-                        // Ambil bulan dari end_date
-                        $endMonth = substr($endDate, 0, 3);
-
-                        // Logika untuk menentukan tahun pada start_date
-                        $month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', "Jul", 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-                        $startMonthIndex = array_search($startDate, $month);
-                        $endMonthIndex = array_search($endMonth, $month);
-
-                        if ($startMonthIndex > $endMonthIndex) {
-                            $startYear = $endYear - 1;
-                        } else {
-                            $startYear = $endYear;
-                        }
-
-                        // Tambahkan tahun kepada start_date
-                        $startDate = $startDate . ' ' . $startYear;
-                        // Simpan ke database
-                        WorkExperience::create
-                        ([
-                            'position' => $position, 
-                            'company' => $company, 
-                            'start_date' => $startDate, 
-                            'end_date' => $endDate
-                        ]);
-                    } 
-                }
-            } else {
-                echo "Bagian Work Experience tidak ditemukan.";
-            }
+            return view('result', [
+                'text' => $text,
+                'work_experience' => $workExperience,
+            ]);
+        } else {
+            return view('result', ['error' => 'Text extraction failed']);
         }
+        // dd($text);
+        // Fungsi ekstraksi untuk Project
+        // $this->extractProject($text);
+        // Fungsi Ekstraksi untuk Competition
+        // $this->extractCompetition($text); 
+        // Fungsi Ekstraksi untuk Certificate
+        // $this->extractCertificate($text);
+        // Tampilkan teks yang diekstrak ke halaman
+        // return view('result', ['text' => $text]);
     }
 
     private function extractProject($text){
