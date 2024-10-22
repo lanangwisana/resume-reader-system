@@ -3,18 +3,17 @@
 <head>
     <title>Extracted Text</title>
 </head>
-<body>
-    @if ($errors->any())
+<body>    
+    <h2>Extracted Text from PDF</h2>
+    @if (!empty($errors))
         <div class="alert alert-danger">
             <ul>
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
+                @foreach ($errors as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
             </ul>
         </div>
-        @endif
-        
-    <h2>Extracted Text from PDF</h2>
+    @endif
     <pre>{{ $text }}</pre>
 </body>
 </html>
