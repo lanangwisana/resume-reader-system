@@ -50,13 +50,17 @@ class ExtractWorkExperienceController extends Controller
         // Validasi start date
         // Start date sudah sesuai dengan format MMM YYYY
         if(preg_match('/^(?:\d{1,2}\s*)?[a-zA-Z]{3}\s+\d{4}$/', $startDate)){
+            // Konversi start_date dan end_date ke format YYYY-MM-dd
+            $startDateFormatted = $this->convertDateFormat($startDate);
+            $endDateFormatted = $this->convertDateFormat($endDate);
+
             // Simpan ke database
             WorkExperience::create
             ([
                 'position' => $position, 
                 'company' => $company, 
-                'start_date' => $startDate, 
-                'end_date' => $endDate
+                'start_date' => $startDateFormatted, 
+                'end_date' => $endDateFormatted
             ]);
         } elseif(preg_match('/^(?:\d{1,2}\s*)?[a-zA-Z]{3}$/', $startDate)){
             // Ambil tahun dari end date
@@ -76,6 +80,9 @@ class ExtractWorkExperienceController extends Controller
                 $startYear = $endYear;
             }
 
+            // Konversi start_date dan end_date ke format YYYY-MM-dd
+            $startDateFormatted = $this->convertDateFormat($startDate);
+            $endDateFormatted = $this->convertDateFormat($endDate);
             // Tambahkan tahun kepada start_date
             $startDate = $startDate . ' ' . $startYear;
             // Simpan ke database
@@ -83,9 +90,28 @@ class ExtractWorkExperienceController extends Controller
             ([
                 'position' => $position, 
                 'company' => $company, 
-                'start_date' => $startDate, 
-                'end_date' => $endDate
+                'start_date' => $startDateFormatted, 
+                'end_date' => $endDateFormatted
             ]);
-        }
+        } return null;
+    }
+
+    // Fungsi untuk mengonversi tanggal dari format MMM YYYY ke YYYY-MM-dd
+    private function convertDateFormat($date) {
+        $monthMapping = [
+            'Jan' => '01', 'Feb' => '02', 'Mar' => '03', 'Apr' => '04',
+            'May' => '05', 'Jun' => '06', 'Jul' => '07', 'Aug' => '08',
+            'Sep' => '09', 'Oct' => '10', 'Nov' => '11', 'Dec' => '12'
+        ];
+
+        // Pisahkan bulan dan tahun dari tanggal yang diberikan
+        list($month, $year) = explode(' ', $date);
+
+        // Ubah bulan ke dalam format numerik dan set hari menjadi 01
+        $month = $monthMapping[$month];
+        $day = '01';
+
+        // Gabungkan kembali menjadi format YYYY-MM-dd
+        return "$year-$month-$day";
     }
 }
