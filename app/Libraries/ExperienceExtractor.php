@@ -1,98 +1,16 @@
 <?php
+namespace App\Libraries;
 
-namespace App\Http\Controllers;
-
-use App\Facades\Experience as FacadesExperience;
-use App\Libraries\ExperienceExtractor as LibrariesExperienceExtractor;
-use App\Libraries\ExperienceLibrary;
-use App\Models\Certification;
-use App\Models\Competition;
 use App\Models\Experience;
-use App\Models\Project;
-use App\Models\WorkExperience;
 use Carbon\Carbon;
-use Dotenv\Validator;
 use Exception;
-use Illuminate\Auth\Events\Validated;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator as FacadesValidator;
-use Illuminate\Validation\Validator as ValidationValidator;
-use Smalot\PdfParser\Parser;
-use App\Libraries\ExperienceExtractor;
 
-class PdfToTextController extends Controller
-{
-    public function index() {
-        return view('index');
-    }
-
-    protected $sertifikatController;
-    protected $extractor;
-
-    public function __construct(SertifikatController $sertifikatController, ExperienceExtractor $extractor) {
-        $this->sertifikatController = $sertifikatController;
-        $this->extractor =  $extractor;
-    }   
-    
-    public function extractText(Request $request) {
-        $validator = FacadesValidator::make($request->all(), [
-            'pdf_file' => 'required|mimes:pdf|max:2048',
-        ]);
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator);
-        }
-        // Simpan file PDF yang diupload
-        $pdfFile = $request->file('pdf_file');
-        $pdfPath = $pdfFile->getPathName();
-        // Inisialisasi array untuk menampung error
-        $errors = [];
-        try {
-            $parser = new Parser();
-            $pdf = $parser->parseFile($pdfPath);
-            $text = $pdf->getText();
-
-            // menggunakan library experienceextractor untuk menampung method ektraksi.
-            $extractor = new ExperienceExtractor();
-            // Eksekusi extractWorkExperience.
-            $extractor->extractWorkExperience($text, $errors);
-            // Eksekusi extractProjects
-            $extractor->extractProjects($text, $errors);
-            // Eksekusi extractCompetitions.
-            $extractor->extractCompetition($text, $errors);
-
-            // ExperienceExtractor::extractWorkExperience($text, $errors);
-            // Eksekusi extractWorkExperience
-            // $this->extractWorkExperience($text, $errors);
-            // Eksekusi extractProjects
-            // $this->extractProjects($text, $errors);
-            // Eksekusi extractCompetitions
-            // $this->extractCompetition($text, $errors);
-            // Eksekusi extractSertifikasi
-            $this->sertifikatController->extractSertifikat($text, $errors);
-            // Jika ada error, tampilkan di view
-            if (!empty($errors)) {
-                return view('result', [
-                    'text' => $text,
-                    'errors' => $errors,
-                ]);
-            }
-            // Jika berhasil
-            return view('result', [
-                'text' => $text,
-                'success' => 'Data berhasil diproses'
-            ]);
-        } catch (Exception $e) {
-            return redirect()->back()
-                ->withErrors(['error' => 'PDF parsing failed: ' . $e->getMessage()])
-                ->withInput();
-        }
-    }
-    
-    private function extractWorkExperience($text, &$errors) {
-        $patternWorkExperience = '/Work experience\s*(?P<content>.*?)\s*(?=Projects|Project|Competitions|Competition|Certificates|Skills|$)/s';
+class ExperienceExtractor{
+    public static function extractWorkExperience($text, &$errors){
+        $patternWorkExperience = '/Work experience\s*(?P<content>.*?)\s*(?=Projects|Project|projects|project|Competitions|Competition|competitions|competition|Certificates|Certificate|certificates|certificate|Skills|Skill $)/s';
         if (preg_match($patternWorkExperience, $text, $matchs)) {
             $workExperienceText = $matchs['content'];
+            // dd($workExperienceText);
             // Pattern untuk menangkap detail work experience
             $patternDetail = '/(?P<name_intitutions>[^\n]+)\s*(?P<startdate>[a-zA-Z]{3}(?:\s+\d{4})?)\s*-\s*(?P<enddate>[a-zA-Z]{3}(?:\s+\d{4})?)\s*(?P<posisi>[^\n]+)/';
             if (preg_match_all($patternDetail, $workExperienceText, $matchs, PREG_SET_ORDER)) {
@@ -169,9 +87,9 @@ class PdfToTextController extends Controller
         }
     }
     
-    private function extractProjects($text, &$errors) {
+    public function extractProjects($text, &$errors) {
         // Mencari data untuk bagian project
-        $patternProject = '/Project\s*(?P<content>.*?)\s*(?=Work Experiences|Work Experience|Work experiences|Work experience|work Experiences|work Experience|work experiences|work experience|Competitions|Competition|competitions|competition|Certificates|Certificate|certificates|certificate|Skills|Skill|skills|skill|$)/si';
+        $patternProject = '/Project\s*(?P<content>.*?)\s*(?=Work Experiences|Work Experience|Work experiences|Work experience|work Experiences|work Experience|work experiences|work experience|Competitions|Competition|competitions|competition|Certificates|Certificate|certificates|certificate|Skills|Skill $)/si';
         if(preg_match($patternProject, $text, $matches)){
             $projectText = $matches['content'];
             // dd($projectText); 
@@ -249,12 +167,12 @@ class PdfToTextController extends Controller
         }
     }
 
-    private function extractCompetition($text, &$errors){
-        $patternCompetition = '/Competition\s*(?P<content>.*?)\s*(?=Work Experiences|Work Experience|Work experiences|Work experience|work Experiences|work Experience|work experiences|work experience|Projects|Project|projects|project|Certificates|Certificate|certificates|certificate|Skills|Skill|skills|skill|$)/s';
+    public function extractCompetition($text, &$errors){
+        $patternCompetition = '/Competition\s*(?P<content>.*?)\s*(?=Work Experiences|Work Experience|Work experiences|Work experience|work Experiences|work Experience|work experiences|work experience|Projects|Project|projects|project|Certificates|Certificate|certificates|certificate|Skills|Skill $)/s';
         if(preg_match($patternCompetition, $text, $matches)){
             $competitionText = $matches['content'];
             // dd($competitionText);
-            $patternDetail ='/(?P<nama>[^\n]+?)\s*-\s*(?P<name_intitutions>[^\n]+?)\s*(?P<startdate>[a-zA-Z]{3}(?:\s+\d{4})?)\s*-\s*(?P<enddate>[a-zA-Z]{3}(?:\s+\d{4})?)\s*(?P<prestasi>[^\n]+)/i';
+            $patternDetail = '/(?P<nama>[^\n]+?)\s*\((?P<name_intitutions>[^)]+)\)\s*(?P<startdate>[a-zA-Z]{3}(?:\s+\d{4})?)\s*-\s*(?P<enddate>[a-zA-Z]{3}(?:\s+\d{4})?)\s*(?P<prestasi>[^\n]*)/i';
             if(preg_match_all($patternDetail, $competitionText, $matches, PREG_SET_ORDER)){
                 // dd($matches);
                 foreach($matches as $match){
