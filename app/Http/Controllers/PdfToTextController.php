@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Facades\Experience as FacadesExperience;
+use App\Libraries\ExperienceExtractor as LibrariesExperienceExtractor;
+use App\Libraries\ExperienceLibrary;
 use App\Models\Certification;
 use App\Models\Competition;
 use App\Models\Experience;
@@ -16,7 +19,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator as FacadesValidator;
 use Illuminate\Validation\Validator as ValidationValidator;
 use Smalot\PdfParser\Parser;
-use App\Libraries\ExperienceLib;
+use App\Libraries\ExperienceExtractor;
 
 class PdfToTextController extends Controller
 {
@@ -25,10 +28,12 @@ class PdfToTextController extends Controller
     }
 
     protected $sertifikatController;
+    protected $extractor;
 
-    public function __construct(SertifikatController $sertifikatController) {
+    public function __construct(SertifikatController $sertifikatController, ExperienceExtractor $extractor) {
         $this->sertifikatController = $sertifikatController;
-    }    
+        $this->extractor =  $extractor;
+    }   
     
     public function extractText(Request $request) {
         $validator = FacadesValidator::make($request->all(), [
@@ -46,8 +51,19 @@ class PdfToTextController extends Controller
             $parser = new Parser();
             $pdf = $parser->parseFile($pdfPath);
             $text = $pdf->getText();
-             // Eksekusi extractWorkExperience
-            $this->extractWorkExperience($text, $errors);
+
+            // menggunakan library experienceextractor untuk menampung method ektraksi.
+            $extractor = new ExperienceExtractor();
+            // Eksekusi extractWorkExperience.
+            $extractor->extractWorkExperience($text, $errors);
+            // Eksekusi extractProjects
+            $extractor->extractProjects($text, $errors);
+            // Eksekusi extractCompetitions.
+            $extractor->extractCompetition($text, $errors);
+
+            // ExperienceExtractor::extractWorkExperience($text, $errors);
+            // Eksekusi extractWorkExperience
+            // $this->extractWorkExperience($text, $errors);
             // Eksekusi extractProjects
             // $this->extractProjects($text, $errors);
             // Eksekusi extractCompetitions
